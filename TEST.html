@@ -1,0 +1,64 @@
+<!-- public/index.html (for both devices) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Link Example</title>
+  <script src="https://simplewebrtc.com/latest-v3.js"></script>
+</head>
+<body>
+
+  <h1>Shared Link: <span id="sharedLink"></span></h1>
+  <label for="codeInput">Enter Code:</label>
+  <input type="text" id="codeInput">
+  <button onclick="updateLink()">Update Link</button>
+
+  <script>
+    let sharedLink = '';
+
+    // Initialize SimpleWebRTC
+    const webrtc = new SimpleWebRTC({
+      localVideoEl: '',
+      remoteVideosEl: '',
+      autoRequestMedia: false,
+      debug: false,
+    });
+
+    // Event listener for SimpleWebRTC connection established
+    webrtc.on('readyToCall', () => {
+      console.log('WebRTC connection established');
+    });
+
+    // Function to send the entered code to the other device
+    function updateLink() {
+      const code = document.getElementById('codeInput').value;
+
+      // Update the link locally
+      onCodeEntered(code);
+
+      // Broadcast the code and link to other devices using SimpleWebRTC
+      webrtc.sendDirectlyToAll('codeMessage', 'code', code);
+    }
+
+    // Function to handle code entry and link update
+    function onCodeEntered(code) {
+      sharedLink = `https://example.com/${code}`;
+
+      // Update the link locally
+      document.getElementById('sharedLink').innerText = sharedLink;
+    }
+
+    // Event listener for incoming messages
+    webrtc.connection.on('message', (data) => {
+      if (data.type === 'codeMessage') {
+        const receivedCode = data.payload;
+
+        // Handle the received code
+        onCodeEntered(receivedCode);
+      }
+    });
+  </script>
+
+</body>
+</html>
